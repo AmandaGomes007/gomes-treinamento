@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Portal do Aluno - Gomes Treinamento</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <div class="login-container" id="login-box">
+      <h2>Login do Aluno</h2>
+      <input type="text" id="username" placeholder="Nome.Sobrenome" />
+      <input type="password" id="password" placeholder="4 primeiros dígitos do CPF" />
+      <button onclick="login()">Entrar</button>
+      <p id="login-error" class="error"></p>
+    </div>
+
+    <div class="courses-container hidden" id="courses-box">
+      <h2>Olá, <span id="aluno-nome"></span>!</h2>
+      <p>Você está liberado para os seguintes cursos:</p>
+      <div id="courses-buttons" class="buttons-grid"></div>
+      <button onclick="logout()">Sair</button>
+    </div>
+  </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
