@@ -2,28 +2,124 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Portal do Aluno - Gomes Treinamento</title>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    #loginForm, #cursoArea {
+      margin-top: 20px;
+    }
+    input {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn-curso {
+      background-color: #3498db;
+      color: white;
+    }
+    .btn-bloqueado {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-  <main>
-    <div class="login-container" id="login-box">
-      <h2>Login do Aluno</h2>
-      <input type="text" id="username" placeholder="Nome.Sobrenome" />
-      <input type="password" id="password" placeholder="4 primeiros dígitos do CPF" />
-      <button onclick="login()">Entrar</button>
-      <p id="login-error" class="error"></p>
-    </div>
+  <h1>🎓 Portal do Aluno - Gomes Treinamento</h1>
 
-    <div class="courses-container hidden" id="courses-box">
-      <h2>Olá, <span id="aluno-nome"></span>!</h2>
-      <p>Você está liberado para os seguintes cursos:</p>
-      <div id="courses-buttons" class="buttons-grid"></div>
-      <button onclick="logout()">Sair</button>
-    </div>
-  </main>
+  <div id="loginForm">
+    <p>Usuário: nome.ultimosobrenome<br>Senha: 4 primeiros dígitos do CPF</p>
+    <input type="text" id="username" placeholder="Usuário (ex: maria.silva)" />
+    <input type="password" id="password" placeholder="Senha (ex: 1234)" />
+    <button onclick="login()">Entrar</button>
+    <p id="loginStatus"></p>
+  </div>
 
-  <script type="module" src="script.js"></script>
+  <div id="cursoArea" style="display:none;">
+    <h2>📚 Cursos Disponíveis</h2>
+    <div id="cursos"></div>
+  </div>
+
+  <script>
+    const PLANILHA_URL = "https://opensheet.vercel.app/1K2UeN9mYrGMHDmTPM_O30EdLdbTHOt9wbCW5PYIk-WI/Liberação_curso";
+
+    async function login() {
+      const user = document.getElementById("username").value.trim().toLowerCase();
+      const pass = document.getElementById("password").value.trim();
+      const status = document.getElementById("loginStatus");
+      status.innerText = "🔄 Validando dados...";
+
+      try {
+        const response = await fetch(PLANILHA_URL);
+        const dados = await response.json();
+
+        const aluno = dados.find(l => {
+          const nome = l["Nome Completo"].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          const partes = nome.split(" ");
+          const loginEsperado = `${partes[0]}.${partes[partes.length - 1]}`;
+          const senhaEsperada = l["CPF"]?.substring(0, 4);
+          return loginEsperado === user && senhaEsperada === pass;
+        });
+
+        if (!aluno) {
+          status.innerText = "❌ Usuário ou senha inválidos.";
+          return;
+        }
+
+        status.innerText = `✅ Bem-vindo(a), ${aluno["Nome Completo"]}!`;
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("cursoArea").style.display = "block";
+
+        mostrarCursos(aluno);
+      } catch (erro) {
+        status.innerText = "⚠️ Erro ao acessar os dados. Tente novamente.";
+        console.error(erro);
+      }
+    }
+
+    function mostrarCursos(aluno) {
+      const container = document.getElementById("cursos");
+
+      const cursosDisponiveis = [
+        { nome: "Treinamento de Integração", campo: "Curso", link: "https://link-do-curso-1.com" },
+        { nome: "NR-06 - EPI", campo: "Curso", link: "https://link-do-curso-2.com" },
+        { nome: "Coleta Seletiva", campo: "Curso", link: "https://link-do-curso-3.com" },
+      ];
+
+      cursosDisponiveis.forEach(curso => {
+        const liberado = aluno["Curso"]?.toLowerCase().includes(curso.nome.toLowerCase());
+
+        const botao = document.createElement("button");
+        botao.innerText = liberado ? `✅ ${curso.nome}` : `🔒 ${curso.nome} indisponível`;
+        botao.className = liberado ? "btn-curso" : "btn-bloqueado";
+
+        if (liberado) {
+          botao.onclick = () => window.open(curso.link, "_blank");
+        } else {
+          botao.disabled = true;
+        }
+
+        container.appendChild(botao);
+      });
+    }
+  </script>
 </body>
 </html>
