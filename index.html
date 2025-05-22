@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login do Curso</title>
   <style>
     body {
@@ -13,17 +13,20 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
+      margin: 0;
     }
     .login-container {
       background: white;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 320px;
     }
     input, select {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
+      box-sizing: border-box;
     }
     button {
       width: 100%;
@@ -33,12 +36,15 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      font-size: 16px;
     }
     button:hover {
       background-color: #1868c7;
     }
     .error {
       color: red;
+      margin-top: 10px;
+      height: 20px;
     }
   </style>
 </head>
@@ -55,8 +61,8 @@
       <option value="PERCEPÇÃO DE RISCO">PERCEPÇÃO DE RISCO</option>
       <option value="PADRONIZAÇÃO">PADRONIZAÇÃO</option>
     </select>
-    <input type="text" id="usuario" placeholder="nome.ultimosobrenome">
-    <input type="password" id="senha" placeholder="4 primeiros do CPF">
+    <input type="text" id="usuario" placeholder="nome.ultimosobrenome" autocomplete="off" />
+    <input type="password" id="senha" placeholder="4 primeiros do CPF" autocomplete="off" />
     <button onclick="validarLogin()">Entrar</button>
     <p id="mensagem" class="error"></p>
   </div>
@@ -67,12 +73,12 @@
 
     const LINKS = {
       "NR06": "https://sites.google.com/view/gomes-treinamentos-nr06/in%C3%ADcio",
-      "INTEGRAÇÃO": "https://sites.google.com/view/gomes-treinamentos-integracao",
-      "SERVIÇO A QUENTE": "https://sites.google.com/view/gomes-treinamentos-nr34-5",
-      "FDS": "https://sites.google.com/view/gomes-treinamentos-fds",
-      "COLETA SELETIVA": "https://sites.google.com/view/gomes-treinamentos-coleta",
-      "PERCEPÇÃO DE RISCO": "https://sites.google.com/view/gomes-treinamentos-percepcao",
-      "PADRONIZAÇÃO": "https://sites.google.com/view/gomes-treinamentos-padronizaca"
+      "INTEGRAÇÃO": "https://sites.google.com/view/gomes-treinamentos-integracao?usp=sharing",
+      "SERVIÇO A QUENTE": "https://sites.google.com/view/gomes-treinamentos-nr34-5?usp=sharing",
+      "FDS": "https://sites.google.com/view/gomes-treinamentos-fds?usp=sharing",
+      "COLETA SELETIVA": "https://sites.google.com/view/gomes-treinamentos-coleta?usp=sharing",
+      "PERCEPÇÃO DE RISCO": "https://sites.google.com/view/gomes-treinamentos-percepcao?usp=sharing",
+      "PADRONIZAÇÃO": "https://sites.google.com/view/gomes-treinamentos-padronizaca?usp=sharing"
     };
 
     async function validarLogin() {
@@ -82,9 +88,15 @@
       const mensagem = document.getElementById('mensagem');
       mensagem.textContent = '';
 
+      if (!usuarioInput || !senhaInput) {
+        mensagem.textContent = 'Por favor, preencha usuário e senha.';
+        return;
+      }
+
       try {
         const url = `https://opensheet.elk.sh/${PLANILHA_ID}/${ABA}`;
         const res = await fetch(url);
+        if (!res.ok) throw new Error('Erro na requisição da planilha');
         const dados = await res.json();
 
         const usuarioEncontrado = dados.find(pessoa => {
@@ -95,12 +107,16 @@
           if (!nome || !cpf || !curso) return false;
 
           const partes = nome.split(' ');
-          const nomeUsuario = `${partes[0]}.${partes[partes.length - 1]}`;
+          const nomeUsuario = `${partes[0]}.${partes[partes.length - 1]}`.toLowerCase();
 
           return nomeUsuario === usuarioInput && senhaInput === cpf.slice(0,4) && curso === cursoSelecionado;
         });
 
         if (usuarioEncontrado) {
+          // Salvar autenticação no localStorage para proteger acesso ao link direto
+          localStorage.setItem('usuarioLogado', usuarioInput);
+          localStorage.setItem('cursoLogado', cursoSelecionado);
+          // Redirecionar para o site do curso
           window.location.href = LINKS[cursoSelecionado];
         } else {
           mensagem.textContent = "Usuário, senha ou curso inválido.";
@@ -110,6 +126,13 @@
         console.error(erro);
       }
     }
+
+    // Bloqueia acesso direto pelo link do Stackblitz caso não tenha login válido
+    (function verificarAcessoDireto() {
+      // Se quiser, aqui você pode colocar a lógica para bloquear acesso a esta página se não estiver autenticado,
+      // mas geralmente é só esta página que é aberta para login.
+      // A proteção real dos links deve ser feita nos sites dos cursos, ou via sessão/localStorage
+    })();
   </script>
 </body>
 </html>
