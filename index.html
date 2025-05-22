@@ -1,124 +1,114 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Portal do Aluno - Gomes Treinamento</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login do Curso</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f4f4f4;
-      padding: 20px;
+      background-color: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-    h1 {
-      color: #2c3e50;
+    .login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    #loginForm, #cursoArea {
-      margin-top: 20px;
-    }
-    input {
+    input, select {
+      width: 100%;
       padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      margin: 10px 0;
     }
     button {
-      padding: 10px 20px;
-      margin: 10px;
+      width: 100%;
+      padding: 10px;
+      background-color: #2c89e2;
+      color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 5px;
       cursor: pointer;
     }
-    .btn-curso {
-      background-color: #3498db;
-      color: white;
+    button:hover {
+      background-color: #1868c7;
     }
-    .btn-bloqueado {
-      background-color: #ccc;
-      color: #666;
-      cursor: not-allowed;
+    .error {
+      color: red;
     }
   </style>
 </head>
 <body>
-  <h1>🎓 Portal do Aluno - Gomes Treinamento</h1>
-
-  <div id="loginForm">
-    <p>Usuário: nome.ultimosobrenome<br>Senha: 4 primeiros dígitos do CPF</p>
-    <input type="text" id="username" placeholder="Usuário (ex: maria.silva)" />
-    <input type="password" id="password" placeholder="Senha (ex: 1234)" />
-    <button onclick="login()">Entrar</button>
-    <p id="loginStatus"></p>
-  </div>
-
-  <div id="cursoArea" style="display:none;">
-    <h2>📚 Cursos Disponíveis</h2>
-    <div id="cursos"></div>
+  <div class="login-container">
+    <h2>Acesso ao Curso</h2>
+    <label for="curso">Selecione o curso:</label>
+    <select id="curso">
+      <option value="NR06">NR06</option>
+      <option value="INTEGRAÇÃO">INTEGRAÇÃO</option>
+      <option value="SERVIÇO A QUENTE">SERVIÇO A QUENTE</option>
+      <option value="FDS">FDS</option>
+      <option value="COLETA SELETIVA">COLETA SELETIVA</option>
+      <option value="PERCEPÇÃO DE RISCO">PERCEPÇÃO DE RISCO</option>
+      <option value="PADRONIZAÇÃO">PADRONIZAÇÃO</option>
+    </select>
+    <input type="text" id="usuario" placeholder="nome.ultimosobrenome">
+    <input type="password" id="senha" placeholder="4 primeiros do CPF">
+    <button onclick="validarLogin()">Entrar</button>
+    <p id="mensagem" class="error"></p>
   </div>
 
   <script>
-    const PLANILHA_URL = "https://opensheet.vercel.app/1K2UeN9mYrGMHDmTPM_O30EdLdbTHOt9wbCW5PYIk-WI/Liberação_curso";
+    const PLANILHA_ID = "1d1UTyY3dAHsTHlajeGkESUDH2bZMUTAhEhDCD6kE7e4";
+    const ABA = "Liberação_curso";
 
-    async function login() {
-      const user = document.getElementById("username").value.trim().toLowerCase();
-      const pass = document.getElementById("password").value.trim();
-      const status = document.getElementById("loginStatus");
-      status.innerText = "🔄 Validando dados...";
+    const LINKS = {
+      "NR06": "https://sites.google.com/view/gomes-treinamentos-nr06/in%C3%ADcio",
+      "INTEGRAÇÃO": "https://sites.google.com/view/gomes-treinamentos-integracao",
+      "SERVIÇO A QUENTE": "https://sites.google.com/view/gomes-treinamentos-nr34-5",
+      "FDS": "https://sites.google.com/view/gomes-treinamentos-fds",
+      "COLETA SELETIVA": "https://sites.google.com/view/gomes-treinamentos-coleta",
+      "PERCEPÇÃO DE RISCO": "https://sites.google.com/view/gomes-treinamentos-percepcao",
+      "PADRONIZAÇÃO": "https://sites.google.com/view/gomes-treinamentos-padronizaca"
+    };
+
+    async function validarLogin() {
+      const usuarioInput = document.getElementById('usuario').value.trim().toLowerCase();
+      const senhaInput = document.getElementById('senha').value.trim();
+      const cursoSelecionado = document.getElementById('curso').value;
+      const mensagem = document.getElementById('mensagem');
+      mensagem.textContent = '';
 
       try {
-        const response = await fetch(PLANILHA_URL);
-        const dados = await response.json();
+        const url = `https://opensheet.elk.sh/${PLANILHA_ID}/${ABA}`;
+        const res = await fetch(url);
+        const dados = await res.json();
 
-        const aluno = dados.find(l => {
-          const nome = l["Nome Completo"].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          const partes = nome.split(" ");
-          const loginEsperado = `${partes[0]}.${partes[partes.length - 1]}`;
-          const senhaEsperada = l["CPF"]?.substring(0, 4);
-          return loginEsperado === user && senhaEsperada === pass;
+        const usuarioEncontrado = dados.find(pessoa => {
+          const nome = pessoa["Nome Completo"]?.trim().toLowerCase();
+          const cpf = pessoa["CPF"]?.trim();
+          const curso = pessoa["Curso"]?.trim().toUpperCase();
+
+          if (!nome || !cpf || !curso) return false;
+
+          const partes = nome.split(' ');
+          const nomeUsuario = `${partes[0]}.${partes[partes.length - 1]}`;
+
+          return nomeUsuario === usuarioInput && senhaInput === cpf.slice(0,4) && curso === cursoSelecionado;
         });
 
-        if (!aluno) {
-          status.innerText = "❌ Usuário ou senha inválidos.";
-          return;
+        if (usuarioEncontrado) {
+          window.location.href = LINKS[cursoSelecionado];
+        } else {
+          mensagem.textContent = "Usuário, senha ou curso inválido.";
         }
-
-        status.innerText = `✅ Bem-vindo(a), ${aluno["Nome Completo"]}!`;
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("cursoArea").style.display = "block";
-
-        mostrarCursos(aluno);
       } catch (erro) {
-        status.innerText = "⚠️ Erro ao acessar os dados. Tente novamente.";
+        mensagem.textContent = "Erro ao validar login. Tente novamente.";
         console.error(erro);
       }
-    }
-
-    function mostrarCursos(aluno) {
-      const container = document.getElementById("cursos");
-
-      const cursosDisponiveis = [
-        { nome: "Treinamento de Integração", campo: "Curso", link: "https://link-do-curso-1.com" },
-        { nome: "NR-06 - EPI", campo: "Curso", link: "https://link-do-curso-2.com" },
-        { nome: "Coleta Seletiva", campo: "Curso", link: "https://link-do-curso-3.com" },
-      ];
-
-      cursosDisponiveis.forEach(curso => {
-        const liberado = aluno["Curso"]?.toLowerCase().includes(curso.nome.toLowerCase());
-
-        const botao = document.createElement("button");
-        botao.innerText = liberado ? `✅ ${curso.nome}` : `🔒 ${curso.nome} indisponível`;
-        botao.className = liberado ? "btn-curso" : "btn-bloqueado";
-
-        if (liberado) {
-          botao.onclick = () => window.open(curso.link, "_blank");
-        } else {
-          botao.disabled = true;
-        }
-
-        container.appendChild(botao);
-      });
     }
   </script>
 </body>
