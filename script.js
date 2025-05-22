@@ -1,8 +1,7 @@
-// Configurações
 const PLANILHA_URL = "https://opensheet.vercel.app/1d1UTyY3dAHsTHlajeGkESUDH2bZMUTAhEhDCD6kE7e4/respostas";
 const cursos = {
-  "NR06": "https://sites.google.com/view/gomes-treinamentos-nr06/in%C3%ADcio",
-  "INTEGRAÇÃO": "https://sites.google.com/view/gomes-treinamentos-integracao?usp=sharing",
+  "NR06": "https://nr06-git-main-amanda-gomes-projects.vercel.app/",
+  "INTEGRAÇÃO": "https://integra-o-git-main-amanda-gomes-projects.vercel.app/",
   "SERVIÇO A QUENTE": "https://sites.google.com/view/gomes-treinamentos-nr34-5?usp=sharing",
   "FDS": "https://sites.google.com/view/gomes-treinamentos-fds?usp=sharing",
   "COLETA SELETIVA": "https://sites.google.com/view/gomes-treinamentos-coleta?usp=sharing",
@@ -10,7 +9,6 @@ const cursos = {
   "PADRONIZAÇÃO": "https://sites.google.com/view/gomes-treinamentos-padronizaca?usp=sharing"
 };
 
-// Login
 async function login() {
   const user = document.getElementById("username").value.trim().toLowerCase();
   const pass = document.getElementById("password").value.trim();
@@ -53,7 +51,6 @@ async function login() {
   document.getElementById("courses-box").classList.remove("hidden");
 }
 
-// Logout
 function logout() {
   document.getElementById("username").value = "";
   document.getElementById("password").value = "";
