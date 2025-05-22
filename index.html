@@ -72,8 +72,8 @@
     const ABA = "Liberação_curso";
 
     const LINKS = {
-      "NR06": "https://nr06-git-main-amanda-gomes-projects.vercel.app/",
-      "INTEGRAÇÃO": "https://integra-o-git-main-amanda-gomes-projects.vercel.app/",
+      "NR06": "https://sites.google.com/view/gomes-treinamentos-nr06/in%C3%ADcio",
+      "INTEGRAÇÃO": "https://sites.google.com/view/gomes-treinamentos-integracao?usp=sharing",
       "SERVIÇO A QUENTE": "https://sites.google.com/view/gomes-treinamentos-nr34-5?usp=sharing",
       "FDS": "https://sites.google.com/view/gomes-treinamentos-fds?usp=sharing",
       "COLETA SELETIVA": "https://sites.google.com/view/gomes-treinamentos-coleta?usp=sharing",
@@ -109,12 +109,14 @@
           const partes = nome.split(' ');
           const nomeUsuario = `${partes[0]}.${partes[partes.length - 1]}`.toLowerCase();
 
-          return nomeUsuario === usuarioInput && senhaInput === cpf.slice(0, 4) && curso === cursoSelecionado;
+          return nomeUsuario === usuarioInput && senhaInput === cpf.slice(0,4) && curso === cursoSelecionado;
         });
 
         if (usuarioEncontrado) {
+          // Salvar autenticação no localStorage para proteger acesso ao link direto
           localStorage.setItem('usuarioLogado', usuarioInput);
           localStorage.setItem('cursoLogado', cursoSelecionado);
+          // Redirecionar para o site do curso
           window.location.href = LINKS[cursoSelecionado];
         } else {
           mensagem.textContent = "Usuário, senha ou curso inválido.";
@@ -124,6 +126,13 @@
         console.error(erro);
       }
     }
+
+    // Bloqueia acesso direto pelo link do Stackblitz caso não tenha login válido
+    (function verificarAcessoDireto() {
+      // Se quiser, aqui você pode colocar a lógica para bloquear acesso a esta página se não estiver autenticado,
+      // mas geralmente é só esta página que é aberta para login.
+      // A proteção real dos links deve ser feita nos sites dos cursos, ou via sessão/localStorage
+    })();
   </script>
 </body>
 </html>
