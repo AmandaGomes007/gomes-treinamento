@@ -52,15 +52,7 @@
   <div class="login-container">
     <h2>Acesso ao Curso</h2>
     <label for="curso">Selecione o curso:</label>
-    <select id="curso">
-      <option value="NR06">NR06</option>
-      <option value="INTEGRAÇÃO">INTEGRAÇÃO</option>
-      <option value="SERVIÇO A QUENTE">SERVIÇO A QUENTE</option>
-      <option value="FDS">FDS</option>
-      <option value="COLETA SELETIVA">COLETA SELETIVA</option>
-      <option value="PERCEPÇÃO DE RISCO">PERCEPÇÃO DE RISCO</option>
-      <option value="PADRONIZAÇÃO">PADRONIZAÇÃO</option>
-    </select>
+    <select id="curso"></select>
     <input type="text" id="usuario" placeholder="nome.ultimosobrenome" autocomplete="off" />
     <input type="password" id="senha" placeholder="4 primeiros do CPF" autocomplete="off" />
     <button onclick="validarLogin()">Entrar</button>
@@ -69,17 +61,34 @@
 
   <script>
     const PLANILHA_ID = "1d1UTyY3dAHsTHlajeGkESUDH2bZMUTAhEhDCD6kE7e4";
-    const ABA = "Liberação_curso";
+    const ABA_CURSOS = "Link_curso";
+    const ABA_ALUNOS = "Liberação_curso";
 
-    const LINKS = {
-      "NR06": "https://sites.google.com/view/gomes-treinamentos-nr06/in%C3%ADcio",
-      "INTEGRAÇÃO": "https://sites.google.com/view/gomes-treinamentos-integracao?usp=sharing",
-      "SERVIÇO A QUENTE": "https://sites.google.com/view/gomes-treinamentos-nr34-5?usp=sharing",
-      "FDS": "https://sites.google.com/view/gomes-treinamentos-fds?usp=sharing",
-      "COLETA SELETIVA": "https://sites.google.com/view/gomes-treinamentos-coleta?usp=sharing",
-      "PERCEPÇÃO DE RISCO": "https://sites.google.com/view/gomes-treinamentos-percepcao?usp=sharing",
-      "PADRONIZAÇÃO": "https://sites.google.com/view/gomes-treinamentos-padronizaca?usp=sharing"
-    };
+    let LINKS = {}; // Vai ser preenchido dinamicamente
+
+    async function carregarCursos() {
+      try {
+        const res = await fetch(`https://opensheet.elk.sh/${PLANILHA_ID}/${ABA_CURSOS}`);
+        if (!res.ok) throw new Error("Erro ao carregar cursos.");
+        const cursos = await res.json();
+        
+        const select = document.getElementById("curso");
+        cursos.forEach(curso => {
+          const nome = curso["NOME DO CURSO"]?.trim().toUpperCase();
+          const link = curso["LINK_SITE_TREINAMENTO"]?.trim();
+          if (nome && link) {
+            LINKS[nome] = link;
+            const option = document.createElement("option");
+            option.value = nome;
+            option.textContent = nome;
+            select.appendChild(option);
+          }
+        });
+      } catch (erro) {
+        console.error("Erro ao carregar cursos:", erro);
+        document.getElementById("mensagem").textContent = "Erro ao carregar cursos.";
+      }
+    }
 
     async function validarLogin() {
       const usuarioInput = document.getElementById('usuario').value.trim().toLowerCase();
@@ -94,7 +103,7 @@
       }
 
       try {
-        const url = `https://opensheet.elk.sh/${PLANILHA_ID}/${ABA}`;
+        const url = `https://opensheet.elk.sh/${PLANILHA_ID}/${ABA_ALUNOS}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('Erro na requisição da planilha');
         const dados = await res.json();
@@ -112,11 +121,9 @@
           return nomeUsuario === usuarioInput && senhaInput === cpf.slice(0,4) && curso === cursoSelecionado;
         });
 
-        if (usuarioEncontrado) {
-          // Salvar autenticação no localStorage para proteger acesso ao link direto
+        if (usuarioEncontrado && LINKS[cursoSelecionado]) {
           localStorage.setItem('usuarioLogado', usuarioInput);
           localStorage.setItem('cursoLogado', cursoSelecionado);
-          // Redirecionar para o site do curso
           window.location.href = LINKS[cursoSelecionado];
         } else {
           mensagem.textContent = "Usuário, senha ou curso inválido.";
@@ -127,12 +134,7 @@
       }
     }
 
-    // Bloqueia acesso direto pelo link do Stackblitz caso não tenha login válido
-    (function verificarAcessoDireto() {
-      // Se quiser, aqui você pode colocar a lógica para bloquear acesso a esta página se não estiver autenticado,
-      // mas geralmente é só esta página que é aberta para login.
-      // A proteção real dos links deve ser feita nos sites dos cursos, ou via sessão/localStorage
-    })();
+    carregarCursos(); // Chama ao carregar a página
   </script>
 </body>
 </html>

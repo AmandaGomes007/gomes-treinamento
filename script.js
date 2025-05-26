@@ -1,3 +1,4 @@
+código JC:
 // Configurações
 const PLANILHA_URL = "https://opensheet.vercel.app/1d1UTyY3dAHsTHlajeGkESUDH2bZMUTAhEhDCD6kE7e4/respostas";
 const cursos = {
